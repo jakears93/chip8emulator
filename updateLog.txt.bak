@@ -1,8 +1,0 @@
-version 0.11
-	-Fixed ADD_VxVy to accurately set V[F] flag
-	-Fixed Rom load to read file as binary
-	-Added program to create rom files (no error checking)
-	-Added getopt loop to set framerate, window size and instruction step mode via cmd args
-	-Moved loading of rom to cpu init
-	-Editted makefile so object files are created and stored in directory objs
-	
