@@ -3,6 +3,8 @@
      Author: Jacob Arsenault
      Date: Apr 26,2020
 */
+#ifndef GRAPHICS_H
+#define GRAPHICS_H
 
 //Dependencies
 #include <stdbool.h>
@@ -10,6 +12,7 @@
 #include "SDL2/SDL.h"
 
 //Constants
+#define DEFAULT_SCALE 10
 #define SCREEN_WIDTH 64
 #define SCREEN_HEIGHT 32
 #define SCREEN_SIZE 2048
@@ -57,3 +60,5 @@ static uint8_t fontSprites[FONT_SIZE] =
 void graphics_init(void);          //Set pixels to 0, load font sprites to ram
 void window_init(void);            //Initialize SDL window
 void draw_screen(void);            //Draw the updated screen
+
+#endif

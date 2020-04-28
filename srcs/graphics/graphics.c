@@ -37,8 +37,6 @@ void graphics_init(void)                //Set pixels to 0, load font sprites to 
 
 void window_init(void)
 {
-     //TODO
-     //read scale from config file.
      windowWidth = SCREEN_WIDTH * windowScale;
      windowHeight = SCREEN_HEIGHT * windowScale;
      windowSize = windowWidth * windowHeight;

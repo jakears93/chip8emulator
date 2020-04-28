@@ -13,62 +13,122 @@
 //#include "sound/sound.h"
 #include "srcs/input/input.h"
 
+struct FLAG{
+     int videoSizeFlag;
+     int frameRateFlag;
+     bool stepFlag;
+     char* romFlag;
+} flags={0,-1,false,""};
+
 //Function Definitions
 int main(int argc, char* argv[])
 {
-     bool runFlag = true;
-
-     //Set up config files
      //TODO
+     //Set up config files to set default flags
 
-     //Initialize all modules
-     cpu_init();
-     if(argc > 1)
+     //Get cmd args
+     int flag;
+     while((flag=getopt(argc,argv,":v:f:sr:")) !=-1)
      {
-          loadRom(argv[1]);
+          switch(flag)
+          {
+               case 'v':
+                    flags.videoSizeFlag = atoi(optarg);
+                    break;
+               case 'f':
+                    flags.frameRateFlag = atoi(optarg);
+                    break;
+               case 's':
+                    flags.stepFlag = true;
+                    break;
+               case 'r':
+                    flags.romFlag = strdup(optarg);
+          }
+     }
+
+     printf("Video Size Flag = %d\n", flags.videoSizeFlag);
+     printf("Frame Rate Flag = %d\n", flags.frameRateFlag);
+     printf("Step Flag = %s\n", flags.stepFlag ? "true" : "false");
+     printf("Rom Flag = %s\n", flags.romFlag);
+
+     //Process arg flags
+
+     //Adjust window scale
+     if (flags.videoSizeFlag > 0 && flags.videoSizeFlag <= 20)
+     {
+               windowScale = flags.videoSizeFlag;
      }
      else
      {
-          printf("To use, run command ./chip8 <romPath> <Step> <scale>\n");
+          windowScale = DEFAULT_SCALE;
+     }
+
+     //Adjust frame timing
+     if(flags.frameRateFlag > 0)
+     {
+          frameTime = (1/(float)flags.frameRateFlag)*SECS_TO_USECS;
+     }
+     else if(flags.frameRateFlag == 0)
+     {
+          frameTime = flags.frameRateFlag;
+     }
+     else
+     {
+          frameTime = STD_FRAME_TIME;
+     }
+
+     //Set rom path
+     if(strcmp(flags.romFlag, "") != 0)
+     {
+          romPath = strdup(flags.romFlag);
+     }
+     else if(flags.videoSizeFlag==0 && flags.frameRateFlag==-1 && flags.stepFlag==false && strcmp(flags.romFlag, "")==0)
+     {
+          romPath = argv[1];
+     }
+     else
+     {
+          printf("To use, run command:\n\t./chip8 <romPath>\n\tor:\n\t./chip8 -r <romPath> -optionalFlags\n");
           exit(1);
      }
 
-     if (argv[2] != NULL)
-     {
-          if(atoi(argv[2]) <=20 && atoi(argv[2]) >=1)
-               {
-                    windowScale = atoi(argv[2]);
-               }
-               else
-               {
-                    windowScale = 10;
-               }
-     }
-     else
-          windowScale=10;
-
-
-
+     //Initialize all modules
+     cpu_init();
      graphics_init();
      //sound_init();
      //input_init();
 
      //Main emulation Loop
-     while(runFlag)
+     while(RUN)
      {
+          //Require a key press to execute cycle if stepFlag is set
+          if(flags.stepFlag)
+          {
+               getchar();
+          }
+
           SDL_Event e;
           while (SDL_PollEvent(&e)) {
-              if (e.type == SDL_QUIT) exit(0);
+              if (e.type == SDL_QUIT) return(0);
           }
+
+          //Fetch next opcode, decode it and then execute
           uint16_t op = fetchInstruction();
           runCycle(op);
+
+          //Draw to screen if drawFlag is true
           if(drawFlag == true)
           {
                printf("\tDrawing To Screen\n");
                draw_screen();
           }
+
+          //Decrement Timers
           REG.DT--;
-          usleep(17*1000);
+          REG.ST--;
+
+          //Sleep for desired time to set frame rate
+          usleep(frameTime);
      }
 
      return 0;

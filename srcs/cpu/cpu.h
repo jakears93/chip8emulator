@@ -3,11 +3,16 @@
      Author: Jacob Arsenault
      Date: Apr 21,2020
 */
+#ifndef CPU_H
+#define CPU_H
 
 //Dependencies
 #include <stdint.h>
 
 //Constants
+#define RUN 1
+#define STD_FRAME_TIME (17*1000)
+#define SECS_TO_USECS (1000*1000)
 #define MAX_RAM_SIZE 4096
 #define STACK_SIZE 16
 #define NUM_OF_REGISTERS 16
@@ -22,6 +27,8 @@ struct registers_s
 } typedef reg;
 
 //Global Variables
+char* romPath;
+int frameTime;
 uint8_t RAM[MAX_RAM_SIZE];      //4kB of memory
 /* RAM layout:
 0x000 - 0x1FF reserved for interpreter
@@ -78,3 +85,5 @@ void LD_BCD(uint8_t x);                       //Store BCD representation of Vx i
 void LD_I(uint8_t x);                        //Store V[0] through V[x] into memory starting at I
 void LD_VxI(uint8_t x);                        //Store values from memory starting at I into V[0]-V[x]
 //Super Chip-48 instructions to be added below
+
+#endif

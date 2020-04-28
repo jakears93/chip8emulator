@@ -3,6 +3,8 @@
      Author: Jacob Arsenault
      Date: Apr 26,2020
 */
+#ifndef INPUT_H
+#define INPUT_H
 
 //Dependencies
 #include <stdbool.h>
@@ -45,3 +47,5 @@ int input_init(void);         //Initialize the inputs
 void debug_printKeys(void);   //Print Key Values and States
 int getKeyPress(void);        //Wait and read a key press, return the key that was press
 void toggle_key(char key);    //Toggle key state
+
+#endif

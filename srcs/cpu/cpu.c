@@ -31,6 +31,7 @@ void cpu_init(void)                           //Initialize CPU
      REG.I=0;
      REG.DT=0;
      REG.ST=0;
+     loadRom(romPath);
 }
 
 uint16_t fetchInstruction(void)              //Read instruction, increment PC to get ready for next fetch.
@@ -42,10 +43,10 @@ uint16_t fetchInstruction(void)              //Read instruction, increment PC to
 
 void loadRom(char* filePath)                 //Load rom file into memory
 {
-     FILE* rom = fopen(filePath, "r");
+     FILE* rom = fopen(filePath, "rb");
      if(rom == NULL)
      {
-          printf("Failed to open ROM. Exiting program.\n");
+          printf("Failed to open ROM: %s. Exiting program.\n",filePath);
           exit(1);
      }
      fseek(rom, 0, SEEK_END);
@@ -55,13 +56,13 @@ void loadRom(char* filePath)                 //Load rom file into memory
      uint8_t* romBuffer = (uint8_t*)malloc(sizeof(uint8_t)*romSize);
      if(romBuffer == NULL)
      {
-          printf("Failed to allocate memory for the rom.  Exiting program.\n");
+          printf("Failed to allocate memory for the rom: %s.  Exiting program.\n",filePath);
           exit(1);
      }
      size_t status = fread(romBuffer, sizeof(uint8_t), (size_t)romSize, rom);
      if(status != romSize)
      {
-          printf("Failed to copy rom.  Exiting program.\n");
+          printf("Failed to copy rom: %s.  Exiting program.\n",filePath);
           exit(1);
      }
      if(romSize < (MAX_RAM_SIZE-0x200))
@@ -73,7 +74,7 @@ void loadRom(char* filePath)                 //Load rom file into memory
      }
      else
      {
-          printf("Rom size is too large for emulator. Exiting program.\n");
+          printf("Rom: %s is too large for emulator. Exiting program.\n",filePath);
           exit(1);
      }
      fclose(rom);
@@ -301,11 +302,12 @@ void XOR_VxVy(uint8_t x, uint8_t y)         //Bitwise XOR Vx,Vy. Store in Vx
 }
 void ADD_VxVy(uint8_t x, uint8_t y)         //Add Vy to Vx
 {
-     REG.V[x] += REG.V[y];
-     if(REG.V[x] > 255)
+     uint16_t sum = REG.V[x] + REG.V[y];
+     if(sum > 255)
           REG.V[0xF]=1;
      else
           REG.V[0xF]=0;
+     REG.V[x] += REG.V[y];
 }
 void SUB_VxVy(uint8_t x, uint8_t y)         //Subtract Vy from Vx
 {
@@ -361,15 +363,15 @@ void DRW(uint8_t x, uint8_t y, uint8_t n)         //Display n-byte sprite at mem
      REG.V[0xF] = 0;
      uint8_t spriteByte = 0x00;
      uint8_t pixelOn;
-     for(int yLine=0; yLine<n; yLine++)           //Loop through sprite bytes
+     for(uint8_t yLine=0; yLine<n; yLine++)           //Loop through sprite bytes
      {
           pixelOn = 0;
-          spriteByte = RAM[REG.I+yLine];          //Load byte from RAM
+          spriteByte = RAM[(REG.I + yLine)];      //Load byte from RAM
 
-          for(int xPix=0; xPix<8; xPix++)         //Loop through sprite bits
+          for(uint8_t xPix=0; xPix<8; xPix++)         //Loop through sprite bits
           {
-               int xLoc = REG.V[x] + xPix;
-               int yLoc = REG.V[y] + yLine;
+               uint8_t xLoc = REG.V[x] + xPix;
+               uint8_t yLoc = REG.V[y] + yLine;
 
                if(xLoc >= SCREEN_WIDTH)           //Check if X coordinate wraps around screen
                {
@@ -381,7 +383,7 @@ void DRW(uint8_t x, uint8_t y, uint8_t n)         //Display n-byte sprite at mem
                }
                                                        //Shift sprite byte so bit can be read
                pixelOn = (spriteByte >> xPix) & 0x01;  //Set pixelOn to on if sprite bit is set
-               if(display[xLoc][yLoc] && pixelOn)  //If the sprite bit and existing screen pixel are both set, turn on collison
+               if(display[xLoc][yLoc] && pixelOn)      //If the sprite bit and existing screen pixel are both set, turn on collison
                {
                     REG.V[0xF] = 1;
                }
