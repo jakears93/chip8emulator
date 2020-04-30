@@ -8,14 +8,17 @@
 
 //Dependencies
 #include <stdint.h>
+#include <stdbool.h>
 
 //Constants
-#define RUN 1
-#define STD_FRAME_TIME (17*1000)
+#define STD_FRAME_RATE (1.0f/1000)
 #define SECS_TO_USECS (1000*1000)
 #define MAX_RAM_SIZE 4096
 #define STACK_SIZE 16
 #define NUM_OF_REGISTERS 16
+#define WIDTH 64
+#define HEIGHT 32
+#define FONT_OFFSET 5
 
 //Structures
 struct registers_s
@@ -41,6 +44,8 @@ uint16_t PC;                   //Program Counter
 uint16_t SP;                   //Stack Pointer (Ponnts to top of the stack)
 uint16_t STACK[STACK_SIZE];    //Stack
 reg REG;                      //Register Structure
+bool drawFlag;                //Draws to page if set
+uint8_t display[WIDTH][HEIGHT];
 
 //Functions Declarations
 void cpu_init(void);                         //Initialize cpu/pc/sp

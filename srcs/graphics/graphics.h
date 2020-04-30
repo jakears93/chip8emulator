@@ -12,11 +12,10 @@
 #include "SDL2/SDL.h"
 
 //Constants
-#define DEFAULT_SCALE 10
+#define DEFAULT_SCALE 15
 #define SCREEN_WIDTH 64
 #define SCREEN_HEIGHT 32
 #define SCREEN_SIZE 2048
-#define FONT_OFFSET 5
 #define FONT_SIZE 80
 #define WHITE 0xFFFFFFFF
 #define BLACK 0x00000000
@@ -34,8 +33,6 @@ int windowWidth;
 int windowHeight;
 int windowSize;
 int windowScale;
-uint8_t display[SCREEN_WIDTH][SCREEN_HEIGHT];
-bool drawFlag;
 static uint8_t fontSprites[FONT_SIZE] =
 {
     0xF0, 0x90, 0x90, 0x90, 0xF0, //0 starts at index 0

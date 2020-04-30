@@ -16,7 +16,7 @@
      7(8)    8(9)    9(10)   E(11)
      A(12)   0(13)   b(14)   F(15)
 */
-#define INPUT_CONFIG_FILE "inputConfig.txt"
+#define INPUT_CONFIG_FILE "config/inputConfig.txt"
 #define NUM_OF_KEYS 16
 #define PRESSED 1
 #define RELEASED 0
@@ -46,6 +46,6 @@ char keyMap[NUM_OF_KEYS];
 int input_init(void);         //Initialize the inputs
 void debug_printKeys(void);   //Print Key Values and States
 int getKeyPress(void);        //Wait and read a key press, return the key that was press
-void toggle_key(char key);    //Toggle key state
+void toggle_key(int key);    //Toggle key state
 
 #endif

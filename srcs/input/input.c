@@ -7,11 +7,18 @@
 //Dependencies
 #include <stdio.h>
 #include <stdlib.h>
+#include <SDL2/SDL.h>
 #include "input.h"
 
 //Function Definitions
 int input_init(void)         //Initialize the inputs based on config file, set all key states to released
 {
+     if(SDL_InitSubSystem(SDL_INIT_EVENTS) < 0)
+     {
+          printf("Error Starting SDL Events Subsystem: %s\n", SDL_GetError());
+          exit(1);
+     }
+
      KEYS[0] = KEY_1;
      KEYS[1] = KEY_2;
      KEYS[2] = KEY_3;
@@ -55,20 +62,19 @@ int input_init(void)         //Initialize the inputs based on config file, set a
 
 int getKeyPress(void)              //Wait and read a key press, return the key that was press
 {
-     //TODO
-     //Uses SDL
+    for(int k=0; k<NUM_OF_KEYS; k++)
+    {
+         if(keyState[k] == PRESSED)
+	 {
+ 	      return KEYS[k];
+	 }
+    }
+    return -1;
 }
 
-void toggle_key(char key)          //Toggle key state
+void toggle_key(int key)          //Toggle key state
 {
-     for(int i=0; i<NUM_OF_KEYS; i++)
-     {
-          if(key == keyMap[i])
-          {
-               keyState[i] ^= 1;
-               break;
-          }
-     }
+     keyState[key] ^= 1;
 }
 
 void debug_printKeys()             //Print key values and states to console for debugging.

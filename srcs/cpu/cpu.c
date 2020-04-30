@@ -6,31 +6,30 @@
 
 //Dependencies
 #include <stdlib.h>
-#include <stdint.h>
+#include <stdio.h>
 #include "cpu.h"
 #include "../input/input.h"
-#include "../graphics/graphics.h"
 
 //Functions Definitions
 void cpu_init(void)                           //Initialize CPU
 {
-     for(int i; i<MAX_RAM_SIZE; i++)
+     for(int i=0; i<MAX_RAM_SIZE; i++)
      {
           RAM[i] = 0;
      }
      PC = 0x200;
      SP = 0;
-     for(int i; i<STACK_SIZE; i++)
+     for(int i=0; i<STACK_SIZE; i++)
      {
           STACK[i] = 0;
      }
-     for(int i; i<NUM_OF_REGISTERS; i++)
+     for(int i=0; i<NUM_OF_REGISTERS; i++)
      {
           REG.V[i] = 0;
      }
      REG.I=0;
-     REG.DT=0;
-     REG.ST=0;
+     REG.DT=0xFF;
+     REG.ST=0xFF;
      loadRom(romPath);
 }
 
@@ -89,143 +88,74 @@ void runCycle(uint16_t instruction)          //Decode opcode and execute functio
      uint8_t kk = instruction & 0x00FF;
      uint16_t nnn = instruction & 0x0FFF;
 
-     printf("opcode: 0x%X\n",instruction);
-     printf("\tx= %X, y=%X, n=%X, kk=%X, nnn=%X\n", x, y, n, kk, nnn);
+     #ifdef DEBUG
+          printf("opcode: 0x%X\n",instruction);
+          printf("\tx= %X, y=%X, n=%X, kk=%X, nnn=%X\n", x, y, n, kk, nnn);
+          if((instruction & 0xF000) == 0xD000)
+               printf("\tDrawing To Screen\n");
+     #endif
 
      switch (instruction & 0xF000)
      {
           case 0x0000:
                switch (instruction & 0x0FFF)
                {
-                    case 0x00E0:
-                         CLS();
-                         break;
-                    case 0x00EE:
-                         RET();
-                         break;
-                    default:
-                         printf("Unknown Instruction: %d\n",instruction);
+                    case 0x00E0:   CLS();    break;
+                    case 0x00EE:   RET();    break;
+                    default:       printf("Unknown Instruction: %d\n",instruction);
                }
                break;
-          case 0x1000:
-               JP(nnn);
-               break;
-          case 0x2000:
-               CALL(nnn);
-               break;
-          case 0x3000:
-               SE_VxKk(x, kk);
-               break;
-          case 0x4000:
-               SNE_VxKk(x, kk);
-               break;
-          case 0x5000:
-               SE_VxVy(x, y);
-               break;
-          case 0x6000:
-               LD_VxKk(x, kk);
-               break;
-          case 0x7000:
-               ADD_VxKk(x, kk);
-               break;
+          case 0x1000:   JP(nnn);            break;
+          case 0x2000:   CALL(nnn);          break;
+          case 0x3000:   SE_VxKk(x, kk);     break;
+          case 0x4000:   SNE_VxKk(x, kk);    break;
+          case 0x5000:   SE_VxVy(x, y);      break;
+          case 0x6000:   LD_VxKk(x, kk);     break;
+          case 0x7000:   ADD_VxKk(x, kk);    break;
           case 0x8000:
                switch (instruction & 0x000F)
                {
-                    case 0x0000:
-                         LD_VxVy(x, y);
-                         break;
-                    case 0x0001:
-                         OR_VxVy(x, y);
-                         break;
-                    case 0x0002:
-                         AND_VxVy(x, y);
-                         break;
-                    case 0x0003:
-                         XOR_VxVy(x, y);
-                         break;
-                    case 0x0004:
-                         ADD_VxVy(x, y);
-                         break;
-                    case 0x0005:
-                         SUB_VxVy(x, y);
-                         break;
-                    case 0x0006:
-                         SHR_Vx(x);
-                         break;
-                    case 0x0007:
-                         SUBN_VxVy(x, y);
-                         break;
-                    case 0x000E:
-                         SHL_Vx(x);
-                         break;
-                    default:
-                         printf("Unknown Instruction: %d\n",instruction);
+                    case 0x0000:   LD_VxVy(x, y);      break;
+                    case 0x0001:   OR_VxVy(x, y);      break;
+                    case 0x0002:   AND_VxVy(x, y);     break;
+                    case 0x0003:   XOR_VxVy(x, y);     break;
+                    case 0x0004:   ADD_VxVy(x, y);     break;
+                    case 0x0005:   SUB_VxVy(x, y);     break;
+                    case 0x0006:   SHR_Vx(x);          break;
+                    case 0x0007:   SUBN_VxVy(x, y);    break;
+                    case 0x000E:   SHL_Vx(x);          break;
+                    default:       printf("Unknown Instruction: %d\n",instruction);
                }
                break;
-          case 0x9000:
-               SNE_VxVy(x, y);
-               break;
-          case 0xA000:
-               LD_Innn(nnn);
-               break;
-          case 0xB000:
-               JP_V0(nnn);
-               break;
-          case 0xC000:
-               RND_VxKk(x, kk);
-               break;
-          case 0xD000:
-               DRW(x, y, n);
-               break;
+          case 0x9000:   SNE_VxVy(x, y);     break;
+          case 0xA000:   LD_Innn(nnn);       break;
+          case 0xB000:   JP_V0(nnn);         break;
+          case 0xC000:   RND_VxKk(x, kk);    break;
+          case 0xD000:   DRW(x, y, n);       break;
           case 0xE000:
                switch (instruction & 0x00FF)
                {
-                    case 0x009E:
-                         SKP_Vx(x);
-                         break;
-                    case 0x00A1:
-                         SKNP_Vx(x);
-                         break;
-                    default:
-                         printf("Unknown Instruction: %d\n",instruction);
+                    case 0x009E:   SKP_Vx(x);     break;
+                    case 0x00A1:   SKNP_Vx(x);    break;
+                    default:       printf("Unknown Instruction: %d\n",instruction);
                }
                break;
           case 0xF000:
                switch (instruction & 0x00FF)
                {
-                    case 0x0007:
-                         LD_VxDT(x);
-                         break;
-                    case 0x000A:
-                         LD_VxKey(x);
-                         break;
-                    case 0x0015:
-                         LD_DTVx(x);
-                         break;
-                    case 0x0018:
-                         LD_STVx(x);
-                         break;
-                    case 0x001E:
-                         ADD_IVx(x);
-                         break;
-                    case 0x0029:
-                         LD_IVx(x);
-                         break;
-                    case 0x0033:
-                         LD_BCD(x);
-                         break;
-                    case 0x0055:
-                         LD_I(x);
-                         break;
-                    case 0x0065:
-                         LD_VxI(x);
-                         break;
-                    default:
-                         printf("Unknown Instruction: %d\n",instruction);
+                    case 0x0007:   LD_VxDT(x);    break;
+                    case 0x000A:   LD_VxKey(x);   break;
+                    case 0x0015:   LD_DTVx(x);    break;
+                    case 0x0018:   LD_STVx(x);    break;
+                    case 0x001E:   ADD_IVx(x);    break;
+                    case 0x0029:   LD_IVx(x);     break;
+                    case 0x0033:   LD_BCD(x);     break;
+                    case 0x0055:   LD_I(x);       break;
+                    case 0x0065:   LD_VxI(x);     break;
+                    default:       printf("Unknown Instruction: %d\n",instruction);
                }
                break;
-          default: //should never reach here as all other cases should catch the unknown instruction
-               printf("Error in opcode handling. Unknown Instruction: %d\n",instruction);
+          default:  printf("Error in opcode handling. Unknown Instruction: %d\n",instruction);
      }
 }
 
@@ -237,9 +167,9 @@ void SYS(uint16_t nnn)                       //Jump to machine code routine at n
 }
 void CLS(void)                              //Clears display
 {
-     for(int row=0; row<SCREEN_WIDTH; row++)
+     for(int row=0; row<WIDTH; row++)
      {
-          for(int col=0; col<SCREEN_HEIGHT; col++)
+          for(int col=0; col<HEIGHT; col++)
           {
                display[row][col] = 0;
           }
@@ -278,11 +208,11 @@ void SE_VxVy(uint8_t x, uint8_t y)          //Skip if Vx = Vy
 }
 void LD_VxKk(uint8_t x, uint8_t kk)         //Load kk to Vx
 {
-     REG.V[x] == kk;
+     REG.V[x] = kk;
 }
 void ADD_VxKk(uint8_t x, uint8_t kk)        //Add kk to Vx
 {
-     REG.V[x] += kk;
+     REG.V[x] = REG.V[x] + kk;
 }
 void LD_VxVy(uint8_t x, uint8_t y)          //Store Vy in Vx
 {
@@ -307,7 +237,7 @@ void ADD_VxVy(uint8_t x, uint8_t y)         //Add Vy to Vx
           REG.V[0xF]=1;
      else
           REG.V[0xF]=0;
-     REG.V[x] += REG.V[y];
+     REG.V[x] = REG.V[x] + REG.V[y];
 }
 void SUB_VxVy(uint8_t x, uint8_t y)         //Subtract Vy from Vx
 {
@@ -315,7 +245,7 @@ void SUB_VxVy(uint8_t x, uint8_t y)         //Subtract Vy from Vx
           REG.V[0xF] = 1;
      else
           REG.V[0xF] = 0;
-     REG.V[x] -= REG.V[y];
+     REG.V[x] = REG.V[x] - REG.V[y];
 }
 void SHR_Vx(uint8_t x)                      //Shift Vx Right 1 Bit
 {
@@ -335,7 +265,7 @@ void SUBN_VxVy(uint8_t x, uint8_t y)        //Subtract Vx from Vy, store in Vx
 }
 void SHL_Vx(uint8_t x)                      //Shift Vx Left 1 Bit
 {
-     if((REG.V[x] & 0x80) == 1)
+     if(((REG.V[x] & 0x80) >> 7) == 1)
           REG.V[0xF] = 1;
      else
           REG.V[0xF] = 0;
@@ -373,17 +303,17 @@ void DRW(uint8_t x, uint8_t y, uint8_t n)         //Display n-byte sprite at mem
                uint8_t xLoc = REG.V[x] + xPix;
                uint8_t yLoc = REG.V[y] + yLine;
 
-               if(xLoc >= SCREEN_WIDTH)           //Check if X coordinate wraps around screen
+               if(xLoc >= WIDTH)           //Check if X coordinate wraps around screen
                {
-                    xLoc = xLoc - SCREEN_WIDTH;
+                    xLoc = xLoc - WIDTH;
                }
-               if(yLoc >= SCREEN_HEIGHT)          //Check if Y coordinate wraps around screen
+               if(yLoc >= HEIGHT)          //Check if Y coordinate wraps around screen
                {
-                    yLoc = yLoc - SCREEN_HEIGHT;
+                    yLoc = yLoc - HEIGHT;
                }
                                                        //Shift sprite byte so bit can be read
-               pixelOn = (spriteByte >> xPix) & 0x01;  //Set pixelOn to on if sprite bit is set
-               if(display[xLoc][yLoc] && pixelOn)      //If the sprite bit and existing screen pixel are both set, turn on collison
+               pixelOn = (spriteByte >> (7-xPix)) & 0x01;  //Set pixelOn to on if sprite bit is set
+               if(display[xLoc][yLoc] & pixelOn)      //If the sprite bit and existing screen pixel are both set, turn on collison
                {
                     REG.V[0xF] = 1;
                }
@@ -392,7 +322,7 @@ void DRW(uint8_t x, uint8_t y, uint8_t n)         //Display n-byte sprite at mem
      }
      drawFlag = true;
 }
-void SKP_Vx(uint8_t x)                      //Skip if Key with value of Vx is pressed
+void SKP_Vx(uint8_t x)	                         //Skip if Key with value of Vx is pressed
 {
      bool checkKey = true;
      int index = 0;
@@ -406,7 +336,7 @@ void SKP_Vx(uint8_t x)                      //Skip if Key with value of Vx is pr
           index++;
      }
 }
-void SKNP_Vx(uint8_t x)                     //Skip if Key with value of Vx is not pressed
+void SKNP_Vx(uint8_t x)                      //Skip if Key with value of Vx is not pressed
 {
      bool checkKey = true;
      int index = 0;
@@ -426,7 +356,13 @@ void LD_VxDT(uint8_t x)                     //Load DT register value into Vx
 }
 void LD_VxKey(uint8_t x)                    //Wait for key press, store value in Vx
 {
-     REG.V[x] = getKeyPress();
+     int keyVal = getKeyPress();
+     if(keyVal == -1)
+     {
+          PC-=2;
+	  return;
+     }
+     REG.V[x] = keyVal;
 }
 void LD_DTVx(uint8_t x)                     //Load Vx into DT Register
 {
@@ -438,7 +374,7 @@ void LD_STVx(uint8_t x)                     //Load Vx into ST Register
 }
 void ADD_IVx(uint8_t x)                     //Add Vx to I
 {
-     REG.I += REG.V[x];
+     REG.I = REG.I + REG.V[x];
 }
 void LD_IVx(uint8_t x)                      //Set I = location of sprite for digit Vx
 {
@@ -448,7 +384,7 @@ void LD_BCD(uint8_t x)                      //Store BCD representation of Vx in 
 {
      RAM[REG.I] = (REG.V[x] / 100) % 10;
      RAM[REG.I+1] = (REG.V[x] / 10) % 10;
-     RAM[REG.I+2] = REG.V[x] % 10;
+     RAM[REG.I+2] = (REG.V[x] % 10);
 }
 void LD_I(uint8_t x)                        //Store V[0] through V[x] into memory starting at I
 {
@@ -459,7 +395,7 @@ void LD_I(uint8_t x)                        //Store V[0] through V[x] into memor
 }
 void LD_VxI(uint8_t x)                      //Store values from memory starting at I into V[0]-V[x]
 {
-     for(int count=0; count<x; count++)
+     for(int count=0; count<=x; count++)
      {
           REG.V[count] = RAM[REG.I+count];
      }

@@ -6,9 +6,9 @@
 
 //Dependencies
 #include "graphics.h"
-#include "../cpu/cpu.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "../cpu/cpu.h"
 
 //Function Definitions
 void graphics_init(void)                //Set pixels to 0, load font sprites to ram
@@ -43,9 +43,9 @@ void window_init(void)
      window = NULL;
 
      //Initialize Window using SDL
-     if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
+     if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0)
      {
-         printf("Error Starting SDL: %s\n", SDL_GetError());
+         printf("Error Starting SDL Video Subsystem: %s\n", SDL_GetError());
          exit(1);
      }
      window = SDL_CreateWindow("CHIP-8 Emulator",SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, windowWidth, windowHeight, SDL_WINDOW_SHOWN);
@@ -53,15 +53,13 @@ void window_init(void)
          printf("Error Creating SDL window: %s\n", SDL_GetError());
          exit(1);
      }
-     renderer = SDL_CreateRenderer(window, -1, 0);
+     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
      SDL_RenderSetLogicalSize(renderer, windowWidth, windowHeight);
 
      texture = SDL_CreateTexture(renderer,
             SDL_PIXELFORMAT_ARGB8888,
             SDL_TEXTUREACCESS_STREAMING,
             SCREEN_WIDTH, SCREEN_HEIGHT);
-
-     draw_screen();
 }
 
 void draw_screen(void)                  //Draw display to screen, set drawFlag to off.
