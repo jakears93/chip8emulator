@@ -13,12 +13,20 @@
 //Functions Definitions
 void cpu_init(void)                           //Initialize CPU
 {
+     //Initialize RAM contents
      for(int i=0; i<MAX_RAM_SIZE; i++)
      {
           RAM[i] = 0;
      }
+     //Load font sprites into memory at location 0x000 - 0x079
+     for(int index=0; index<FONT_SIZE; index++)
+     {
+          RAM[index] = fontSprites[index];
+     }
+     //Set program counter and stack pointer
      PC = 0x200;
      SP = 0;
+     //Initialize Stack and registers
      for(int i=0; i<STACK_SIZE; i++)
      {
           STACK[i] = 0;
@@ -30,7 +38,14 @@ void cpu_init(void)                           //Initialize CPU
      REG.I=0;
      REG.DT=0xFF;
      REG.ST=0xFF;
+     //Load the rom
      loadRom(romPath);
+}
+
+void rom_reset(void)                         //Reset CPU to beginning of ROM
+{
+     CLS();
+     cpu_init();
 }
 
 uint16_t fetchInstruction(void)              //Read instruction, increment PC to get ready for next fetch.

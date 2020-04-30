@@ -11,14 +11,16 @@
 #include <stdbool.h>
 
 //Constants
-#define STD_FRAME_RATE (1.0f/1000)
-#define SECS_TO_USECS (1000*1000)
+#define MIN_FRAME_RATE 30
+#define STD_FRAME_RATE 1000
+#define SECS_TO_USECS (1000000)
 #define MAX_RAM_SIZE 4096
 #define STACK_SIZE 16
 #define NUM_OF_REGISTERS 16
 #define WIDTH 64
 #define HEIGHT 32
 #define FONT_OFFSET 5
+#define FONT_SIZE 80
 
 //Structures
 struct registers_s
@@ -39,7 +41,6 @@ uint8_t RAM[MAX_RAM_SIZE];      //4kB of memory
      0x200 start of most chip8 programs
      0x600 start of eti 660 chip8 programs
 */
-
 uint16_t PC;                   //Program Counter
 uint16_t SP;                   //Stack Pointer (Ponnts to top of the stack)
 uint16_t STACK[STACK_SIZE];    //Stack
@@ -47,11 +48,32 @@ reg REG;                      //Register Structure
 bool drawFlag;                //Draws to page if set
 uint8_t display[WIDTH][HEIGHT];
 
+static uint8_t fontSprites[FONT_SIZE] =      //Font Sprites to be stored in RAM
+{
+    0xF0, 0x90, 0x90, 0x90, 0xF0, //0 starts at index 0
+    0x20, 0x60, 0x20, 0x20, 0x70, //1 starts at index 5
+    0xF0, 0x10, 0xF0, 0x80, 0xF0, //2 starts at index 10
+    0xF0, 0x10, 0xF0, 0x10, 0xF0, //3 starts at index 15
+    0x90, 0x90, 0xF0, 0x10, 0x10, //4 starts at index 20
+    0xF0, 0x80, 0xF0, 0x10, 0xF0, //5 starts at index 25
+    0xF0, 0x80, 0xF0, 0x90, 0xF0, //6 starts at index 30
+    0xF0, 0x10, 0x20, 0x40, 0x40, //7 starts at index 35
+    0xF0, 0x90, 0xF0, 0x90, 0xF0, //8 starts at index 40
+    0xF0, 0x90, 0xF0, 0x10, 0xF0, //9 starts at index 45
+    0xF0, 0x90, 0xF0, 0x90, 0x90, //A starts at index 50
+    0xE0, 0x90, 0xE0, 0x90, 0xE0, //B starts at index 55
+    0xF0, 0x80, 0x80, 0x80, 0xF0, //C starts at index 60
+    0xE0, 0x90, 0x90, 0x90, 0xE0, //D starts at index 65
+    0xF0, 0x80, 0xF0, 0x80, 0xF0, //E starts at index 70
+    0xF0, 0x80, 0xF0, 0x80, 0x80  //F starts at index 75
+};
+
 //Functions Declarations
 void cpu_init(void);                         //Initialize cpu/pc/sp
 uint16_t fetchInstruction(void);             //Retrieve instruction
 void runCycle(uint16_t instruction);         //Decode and execute instruction
 void loadRom(char* filePath);                //Load rom into memory
+void rom_reset(void);                        //Resets CPU to beginning of ROM
 
 //Opcode Functions for Chip-8 as per http://devernay.free.fr/hacks/chip8/C8TECH10.HTM
 void SYS(uint16_t nnn);                      //Jump to machine code routine at nnn
