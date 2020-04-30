@@ -3,19 +3,19 @@ A Chip 8 interpreter
 
 My first emulator project.
 
-I have tried to make this project as verbose as possible as it is a learning project.  
+I have tried to make this project as verbose as possible as it is a learning project. 
 My goal is to write an NES emulator using the knowledge I have gained from this venture.
 
 ## Completed
 -    Currently the emulator seems to run games with no issues.
-I have set the opcode execution speed to 1000 fps as I find the games run a little better at this speed. However, you can still set the fps manually with the -f flag when launching. Used as ./chip8 <romName> -f <fps>
+I have set the opcode execution speed to 1000 fps as I find the games run a little better at this speed. However, you can still set the fps manually with the -f flag when launching. Used as ./chip8 romName -f fps
 
 -    The default window size for the emulator is 960x480 (15x scale of the original 64x32 resolution).  You can also manually set the scale with the -v flag from 1-30, 1 being 64x32 and 32 being 1920x960.
-Used as ./chip8 <romName> -v <scale>
+Used as ./chip8 romName -v scale
 
--    The default window background colour is black but can now be set using the command line.  Used as ./chip8 <romName> -b <colour string>
+-    The default window background colour is black but can now be set using the command line.  Used as ./chip8 romName -b colourstring
 
--    The default sprite colour is white but can now be set using the command line.  Used as ./chip8 <romName> -s <colour string>
+-    The default sprite colour is white but can now be set using the command line.  Used as ./chip8 romName -s colourstring
 
 -    The emulator speed can be increased and decreased using the keypad plus and minus keys.  Each SDL poll event of the key down changes the frames per second value by +- 100
 
@@ -58,3 +58,4 @@ Used as ./chip8 <romName> -v <scale>
 3)   Implemented control of game speed with keypad plus (increase) and keypad minus (decrease)
 4)   Fixed getopt loop to correctly process arguments
 5)   Added the ability to change sprite and background colours using the flags -s and -b respectively followed by the colour in lowercase.
+
