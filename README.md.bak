@@ -25,24 +25,24 @@ This is an easy fix however, I have put it on the back burner as I found impleme
 4)   Finally, I plan to clean up the code a little bit better; remove use of global variables and remove unused functions/checks that were previously used tot debug.  I tried to do this already and for example, pass the display buffer as a pointer but for reasons beyond my current understanding, performance took a drastic penalty, running at what I could visually estimate as about 60fps even at frame rate settings 1000 or higher.
 
 ## Update Log
-####version 0.2
-	1)	Fixed ADD_VxVy to accurately set V[F] flag
-	2)	Fixed Rom load to read file as binary
-	3) 	Added program to create rom files (no error checking)
-	4) 	Added getopt loop to set framerate, window size and instruction step mode via cmd args
-	5) 	Moved loading of rom to cpu init
-	6) 	Editted makefile so object files are created and stored in directory objs
+version 0.2
+	-Fixed ADD_VxVy to accurately set V[F] flag
+	-Fixed Rom load to read file as binary
+	-Added program to create rom files (no error checking)
+	-Added getopt loop to set framerate, window size and instruction step mode via cmd args
+	-Moved loading of rom to cpu init
+	-Editted makefile so object files are created and stored in directory objs
 
-####version 0.3
-1)	Fixed bug that caused V[x] to compare to kk instead of being set to it
-2)	Fixed bug that cause sprites to be drawn flipped.  While setting pixelOn, shift (7-x) bits right instead of x bits
-3)	Implemented keyboard inputs
-4)	Changed standard framerate from 60 to 1000 as 60 produced a very slow game
-5)	Changed makefile so that if option DF=1 is used, Debug flag is set and opcodes are printed during execution.
-6)	Fixed cpu function that loads values from I into V0-Vx.  Was causing bug in pong where right player score would not be drawn
-7)	Put input event and draw screen loops into seperate threads to increase performance
-8)	Fixed SHLVx function as it was always evaluating as false
-9)	Initialized each SDL component seperately and safely close them at program exit.
-10)	Created new makefile with -Ofast flags to cut down size of built program and boost performance
-11)	Can now be run by setting makefile option DF=1, allowing for debug statements to be printed to console during execution
-12)	Reorganized code
+version 0.3
+	-Fixed bug that caused V[x] to compare to kk instead of being set to it
+	-Fixed bug that cause sprites to be drawn flipped.  While setting pixelOn, shift (7-x) bits right instead of x bits
+	-Implemented keyboard inputs
+	-Changed standard framerate from 60 to 1000 as 60 produced a very slow game
+	-Changed makefile so that if option DF=1 is used, Debug flag is set and opcodes are printed during execution.
+	-Fixed cpu function that loads values from I into V0-Vx.  Was causing bug in pong where right player score would not be drawn
+	-Put input event and draw screen loops into seperate threads to increase performance
+	-Fixed SHL_Vx function as it was always evaluating as false
+	-Initialized each SDL component seperately and safely close them at program exit.
+	-Created new makefile with -Ofast flags to cut down size of built program and boost performance
+	-Can now be run by setting makefile option DF=1, allowing for debug statements to be printed to console during execution
+	-Reorganized code
