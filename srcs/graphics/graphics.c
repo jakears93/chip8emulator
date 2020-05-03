@@ -67,7 +67,8 @@ void draw_screen(void)                  //Draw display to screen, set drawFlag t
           for(int indexW=0; indexW<SCREEN_WIDTH; indexW++)
           {
                uint32_t pixel = display[indexW][indexH];
-               if(pixel)
+               gfxBuffer[(SCREEN_WIDTH*indexH)+indexW] = (pixel*(SPRITE_COLOUR^BG_COLOUR))^BG_COLOUR;
+               /*if(pixel)
                {
                     gfxBuffer[(SCREEN_WIDTH*indexH)+indexW] = SPRITE_COLOUR;
                }
@@ -75,7 +76,8 @@ void draw_screen(void)                  //Draw display to screen, set drawFlag t
                {
                     gfxBuffer[(SCREEN_WIDTH*indexH)+indexW] = BG_COLOUR;
                }
-               //gfxBuffer[(SCREEN_WIDTH*indexH)+indexW] = (pixel * WHITE) & WHITE;
+               gfxBuffer[(SCREEN_WIDTH*indexH)+indexW] = (pixel * WHITE) & WHITE;
+               */
           }
      }
 

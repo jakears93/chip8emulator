@@ -95,6 +95,30 @@ void loadRom(char* filePath)                 //Load rom file into memory
      free(romBuffer);
 }
 
+void updateDT(void)                          //Updates REG.DT value
+{
+     if(REG.DT == 0)
+     {
+          REG.DT = 0xFF;
+     }
+     else
+     {
+          REG.DT = REG.DT-1;
+     }
+}
+uint8_t updateST(void)                       //Updates REG.ST value
+{
+          if(REG.ST == 0)
+          {
+               REG.ST = 0xFF;
+          }
+          else
+          {
+               REG.ST = REG.ST-1;
+          }
+          return REG.ST;
+}
+
 void runCycle(uint16_t instruction)          //Decode opcode and execute function call.
 {
      uint8_t n = instruction & 0x000F;
@@ -195,6 +219,7 @@ void RET(void)                              //Return from subroutine
 {
      PC = STACK[SP];
      SP--;
+     PC+=2;
 }
 void JP(uint16_t nnn)                       //Jump to location nnn
 {
@@ -203,7 +228,7 @@ void JP(uint16_t nnn)                       //Jump to location nnn
 void CALL(uint16_t nnn)                     //Call subroutine at nnn
 {
      ++SP;
-     STACK[SP] = PC;
+     STACK[SP] = PC-2;
      PC = nnn;
 }
 void SE_VxKk(uint8_t x, uint8_t kk)         //Skip if Vx = kk

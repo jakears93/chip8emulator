@@ -74,6 +74,8 @@ uint16_t fetchInstruction(void);             //Retrieve instruction
 void runCycle(uint16_t instruction);         //Decode and execute instruction
 void loadRom(char* filePath);                //Load rom into memory
 void rom_reset(void);                        //Resets CPU to beginning of ROM
+void updateDT(void);                         //Updates REG.DT value
+uint8_t updateST(void);                      //Updates REG.ST value, returns value
 
 //Opcode Functions for Chip-8 as per http://devernay.free.fr/hacks/chip8/C8TECH10.HTM
 void SYS(uint16_t nnn);                      //Jump to machine code routine at nnn

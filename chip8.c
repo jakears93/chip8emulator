@@ -28,6 +28,22 @@ bool PAUSE_SET = 0;
 bool SPEED_SET = 0;
 
 //Draw Thread Function
+int handle_audio(void *ptr)
+{
+     while(RUN)
+     {
+          if(updateST() == 0)      //supposed to sound when non-zero but this is my code and I like it better like this. sue me.
+          {
+               printf("\a");
+               fflush(stdout);
+          }
+          do {
+               SDL_Delay(16);
+          } while (PAUSE);
+     }
+     return 0;
+}
+
 int handle_draw(void *ptr)
 {
      while(RUN)
@@ -39,7 +55,7 @@ int handle_draw(void *ptr)
           }
           do
           {
-               SDL_Delay(8);
+               SDL_Delay(16);
           } while(PAUSE);
      }
      return 0;
@@ -59,7 +75,6 @@ int handle_event(void *ptr)
                     PAUSE = 0;
                }
                RUN = 0;
-               return(0);
           }
           if (e.type == SDL_KEYDOWN)
           {
@@ -222,6 +237,7 @@ int main(int argc, char* argv[])
      srand(time(0));
 
      SDL_Thread *drawThread = NULL;
+     SDL_Thread *audioThread = NULL;
      SDL_Thread *eventThread = NULL;
 
      //Initialize SDL timer system
@@ -240,6 +256,17 @@ int main(int argc, char* argv[])
                uint16_t op = fetchInstruction();
                runCycle(op);
 
+               //Create seperate thread for playing audio to the screen
+               if (audioThread == NULL)
+               {
+                    audioThread = SDL_CreateThread(handle_audio, "handle_audio", (void*)NULL);
+                    if (audioThread == NULL)
+                    {
+                         printf("SDL_CreateThread audio failed: %s\n", SDL_GetError());
+                         exit(1);
+                    }
+               }
+
                //Create seperate thread for drawing to the screen
                if (drawThread == NULL)
                {
@@ -250,7 +277,7 @@ int main(int argc, char* argv[])
                          exit(1);
                     }
                }
-               //Creat seperate thread for handling input events
+               //Create seperate thread for handling input events
                if (eventThread == NULL)
                {
                     eventThread = SDL_CreateThread(handle_event, "handle_event", (void*)NULL);
@@ -261,23 +288,8 @@ int main(int argc, char* argv[])
                     }
                }
 
-               //Decrement Delay and Sound Timers
-               if(REG.DT == 0)
-               {
-                    REG.DT = 0xFF;
-               }
-               else
-               {
-                    REG.DT = REG.DT-1;
-               }
-               if(REG.ST == 0)
-               {
-                    REG.ST = 0xFF;
-               }
-               else
-               {
-                    REG.ST = REG.ST-1;
-               }
+               //Decrement Delay Timer Register
+               updateDT();
 
                //If pause buttton is pressed, delay execution until it is pressed again.
                if(PAUSE)
@@ -290,7 +302,21 @@ int main(int argc, char* argv[])
      }
 
      //Safely shut down SDL systems and close program.
-     SDL_WaitThread(drawThread, NULL);
+     int eventReturn, drawReturn, audioReturn;
+
+     SDL_WaitThread(eventThread, &eventReturn);
+     SDL_WaitThread(audioThread, &audioReturn);
+     SDL_WaitThread(drawThread, &drawReturn);
+
+     #ifdef DEBUG
+          if(eventReturn == 0)
+               printf("Event Thread Closed Successfully\n");
+          if(audioReturn == 0)
+               printf("Audio Thread Closed Successfully\n");
+          if(drawReturn == 0)
+               printf("Draw Thread Closed Successfully\n");
+     #endif
+
      SDL_QuitSubSystem(SDL_INIT_VIDEO);
      SDL_QuitSubSystem(SDL_INIT_EVENTS);
      SDL_QuitSubSystem(SDL_INIT_TIMER);
