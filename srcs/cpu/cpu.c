@@ -36,8 +36,9 @@ void cpu_init(void)                           //Initialize CPU
           REG.V[i] = 0;
      }
      REG.I=0;
-     REG.DT=0xFF;
-     REG.ST=0xFF;
+     REG.DT=0x00;
+     REG.ST=0x00;
+     drawFlag = false;
      //Load the rom
      loadRom(romPath);
 }
@@ -97,26 +98,15 @@ void loadRom(char* filePath)                 //Load rom file into memory
 
 void updateDT(void)                          //Updates REG.DT value
 {
-     if(REG.DT == 0)
-     {
-          REG.DT = 0xFF;
-     }
-     else
-     {
-          REG.DT = REG.DT-1;
-     }
+     if(REG.DT != 0)
+          REG.DT = REG.DT - 1;
+
 }
 uint8_t updateST(void)                       //Updates REG.ST value
 {
-          if(REG.ST == 0)
-          {
-               REG.ST = 0xFF;
-          }
-          else
-          {
-               REG.ST = REG.ST-1;
-          }
-          return REG.ST;
+     if(REG.ST != 0)
+          REG.ST = REG.ST-1;
+     return REG.ST;
 }
 
 void runCycle(uint16_t instruction)          //Decode opcode and execute function call.
@@ -219,7 +209,6 @@ void RET(void)                              //Return from subroutine
 {
      PC = STACK[SP];
      SP--;
-     PC+=2;
 }
 void JP(uint16_t nnn)                       //Jump to location nnn
 {
@@ -228,7 +217,7 @@ void JP(uint16_t nnn)                       //Jump to location nnn
 void CALL(uint16_t nnn)                     //Call subroutine at nnn
 {
      ++SP;
-     STACK[SP] = PC-2;
+     STACK[SP] = PC;
      PC = nnn;
 }
 void SE_VxKk(uint8_t x, uint8_t kk)         //Skip if Vx = kk
@@ -287,7 +276,7 @@ void SUB_VxVy(uint8_t x, uint8_t y)         //Subtract Vy from Vx
           REG.V[0xF] = 0;
      REG.V[x] = REG.V[x] - REG.V[y];
 }
-void SHR_Vx(uint8_t x)                      //Shift Vx Right 1 Bit
+void SHR_Vx(uint8_t x)                       //Shift Vx Right 1 Bit
 {
      if((REG.V[x] & 0x01) == 1)
           REG.V[0xF] = 1;
@@ -295,7 +284,7 @@ void SHR_Vx(uint8_t x)                      //Shift Vx Right 1 Bit
           REG.V[0xF] = 0;
      REG.V[x] = REG.V[x] >> 1;
 }
-void SUBN_VxVy(uint8_t x, uint8_t y)        //Subtract Vx from Vy, store in Vx
+void SUBN_VxVy(uint8_t x, uint8_t y)         //Subtract Vx from Vy, store in Vx
 {
      if(REG.V[y] > REG.V[x])
           REG.V[0xF] = 1;
@@ -303,7 +292,7 @@ void SUBN_VxVy(uint8_t x, uint8_t y)        //Subtract Vx from Vy, store in Vx
           REG.V[0xF] = 0;
      REG.V[x] = REG.V[y] - REG.V[x];
 }
-void SHL_Vx(uint8_t x)                      //Shift Vx Left 1 Bit
+void SHL_Vx(uint8_t x)                       //Shift Vx Left 1 Bit
 {
      if(((REG.V[x] & 0x80) >> 7) == 1)
           REG.V[0xF] = 1;
@@ -362,7 +351,7 @@ void DRW(uint8_t x, uint8_t y, uint8_t n)         //Display n-byte sprite at mem
      }
      drawFlag = true;
 }
-void SKP_Vx(uint8_t x)	                         //Skip if Key with value of Vx is pressed
+void SKP_Vx(uint8_t x)	                     //Skip if Key with value of Vx is pressed
 {
      bool checkKey = true;
      int index = 0;
@@ -370,7 +359,8 @@ void SKP_Vx(uint8_t x)	                         //Skip if Key with value of Vx i
      {
           if(REG.V[x] == KEYS[index])
           {
-               PC += (2 * keyState[index]);
+               if(keyState[index] == 1)
+                    PC = PC + 2;
                checkKey = false;
           }
           index++;
@@ -384,7 +374,8 @@ void SKNP_Vx(uint8_t x)                      //Skip if Key with value of Vx is n
      {
           if(REG.V[x] == KEYS[index])
           {
-               PC += (2 * (!keyState[index]));
+               if(keyState[index] == 0)
+                    PC = PC + 2;
                checkKey = false;
           }
           index++;

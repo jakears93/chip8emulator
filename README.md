@@ -8,6 +8,7 @@ My goal is to write an NES emulator using the knowledge I have gained from this 
 
 ## Completed
 ------------
+-    Usage: ./chip8 roms/ROMNAME
 -    Currently the emulator seems to run games with no issues.
 I have set the opcode execution speed to 1000 fps as I find the games run a little better at this speed. However, you can still set the fps manually with the -f flag when launching. Used as ./chip8 romName -f fps
 
@@ -27,7 +28,7 @@ Used as ./chip8 romName -v scale
 
 ## Next Steps
 -------------
-1)   Next I plan to implement sound and make sure that the two timers DT and ST are fully functional.  Audio will be processed via SDL as was graphics and input.
+1)   Sound implemented as a printf("\a") currently.  I will eventually upgrade to SDL audio to make the emulator more portable.
 
 2)   Finally, I plan to clean up the code a little bit better; remove use of global variables and remove unused functions/checks that were previously used tot debug.  I tried to do this already and for example, pass the display buffer as a pointer but for reasons beyond my current understanding, performance took a drastic penalty, running at what I could visually estimate as about 60fps even at frame rate settings 1000 or higher.
 
@@ -66,3 +67,10 @@ Used as ./chip8 romName -v scale
 1)   Added audio support via the std function printf "\a" console beep
 2)   Created a separate thread to handle audio
 3)   Adjusted RET and CALL opcode functions to set PC properly
+
+#### version 0.6
+1)   Added updateDT/ST functions to decrement the timers
+2)   Initialized DT and ST to 0 in cpu_init as initializing to 0xFF was incorrect for Emulation
+3)   Decremented DT at 60hz instead of at the cpu execution rate.  Fixed issues in Tetris/Invaders where the sprites would not move down the Y-axis in game.
+4)   Moved thread functions to respective component files
+5)   Set up delay times as constants

@@ -8,7 +8,6 @@
 #include "graphics.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "../cpu/cpu.h"
 
 //Function Definitions
 void graphics_init(void)                //Set pixels to 0, load font sprites to ram
@@ -61,31 +60,20 @@ void window_init(void)
 
 void draw_screen(void)                  //Draw display to screen, set drawFlag to off.
 {
-//TODO ENABLE COLOUR CHANGE FOR PIXELS
-     for(int indexH=0; indexH<SCREEN_HEIGHT; indexH++)
-     {
-          for(int indexW=0; indexW<SCREEN_WIDTH; indexW++)
+     //TODO ENABLE COLOUR CHANGE FOR PIXELS
+          for(int indexH=0; indexH<SCREEN_HEIGHT; indexH++)
           {
-               uint32_t pixel = display[indexW][indexH];
-               gfxBuffer[(SCREEN_WIDTH*indexH)+indexW] = (pixel*(SPRITE_COLOUR^BG_COLOUR))^BG_COLOUR;
-               /*if(pixel)
+               for(int indexW=0; indexW<SCREEN_WIDTH; indexW++)
                {
-                    gfxBuffer[(SCREEN_WIDTH*indexH)+indexW] = SPRITE_COLOUR;
+                    uint32_t pixel = display[indexW][indexH];
+                    gfxBuffer[(SCREEN_WIDTH*indexH)+indexW] = (pixel*(SPRITE_COLOUR^BG_COLOUR))^BG_COLOUR;
                }
-               else
-               {
-                    gfxBuffer[(SCREEN_WIDTH*indexH)+indexW] = BG_COLOUR;
-               }
-               gfxBuffer[(SCREEN_WIDTH*indexH)+indexW] = (pixel * WHITE) & WHITE;
-               */
           }
-     }
-
-     SDL_UpdateTexture(texture, NULL, gfxBuffer, SCREEN_WIDTH*sizeof(Uint32));
-     SDL_RenderClear(renderer);
-     SDL_RenderCopy(renderer, texture, NULL, NULL);
-     SDL_RenderPresent(renderer);
-     drawFlag = false;
+          SDL_UpdateTexture(texture, NULL, gfxBuffer, SCREEN_WIDTH*sizeof(Uint32));
+          SDL_RenderClear(renderer);
+          SDL_RenderCopy(renderer, texture, NULL, NULL);
+          SDL_RenderPresent(renderer);
+          drawFlag = false;
 }
 
 void setBackgroundColour(char* colour)  //Sets the background colour
@@ -149,4 +137,22 @@ void setSpriteColour(char* colour)      //Sets the sprite colour
      {
           SPRITE_COLOUR = WHITE;
      }
+}
+
+int handle_draw(void* flags)            //Draws to the screen at 60hz if drawFlag=1
+{
+     cFlags* controlFlags= (cFlags*)flags;
+     while(controlFlags->RUN)
+     {
+     //Draw to screen if drawFlag is true
+          if(drawFlag)
+          {
+               draw_screen();
+          }
+          do
+          {
+               SDL_Delay(DRAW_DELAY);
+          } while(controlFlags->PAUSE);
+     }
+     return 0;
 }

@@ -10,148 +10,7 @@
 #include "srcs/cpu/cpu.h"
 #include "srcs/graphics/graphics.h"
 #include "srcs/input/input.h"
-//#include "sound/sound.h"
-
-//Struct to hold flags for cmd options/args
-struct FLAG{
-     int videoSizeFlag;
-     float frameRateFlag;
-     char* bgColourFlag;
-     char* spriteColourFlag;
-} flags={0,-1, "black", "white"};
-
-//Emulation Control Flags
-bool RESET = 0;
-bool RUN = 1;
-bool PAUSE = 0;
-bool PAUSE_SET = 0;
-bool SPEED_SET = 0;
-
-//Draw Thread Function
-int handle_audio(void *ptr)
-{
-     while(RUN)
-     {
-          if(updateST() == 0)      //supposed to sound when non-zero but this is my code and I like it better like this. sue me.
-          {
-               printf("\a");
-               fflush(stdout);
-          }
-          do {
-               SDL_Delay(16);
-          } while (PAUSE);
-     }
-     return 0;
-}
-
-int handle_draw(void *ptr)
-{
-     while(RUN)
-     {
-     //Draw to screen if drawFlag is true
-          if(drawFlag)
-          {
-               draw_screen();
-          }
-          do
-          {
-               SDL_Delay(16);
-          } while(PAUSE);
-     }
-     return 0;
-}
-
-//Event Thread Functions
-int handle_event(void *ptr)
-{
-     SDL_Event e;
-     while (RUN)
-     {
-          SDL_PollEvent(&e);
-          if (e.type == SDL_QUIT)
-          {
-               if(PAUSE)
-               {
-                    PAUSE = 0;
-               }
-               RUN = 0;
-          }
-          if (e.type == SDL_KEYDOWN)
-          {
-               for(int k=0; k<NUM_OF_KEYS; k++)
-               {
-                    if(e.key.keysym.sym == keyMap[k])
-                    {
-                         keyState[k] = PRESSED;
-                    }
-               }
-               if(e.key.keysym.sym == SDLK_BACKSPACE)
-               {
-                    if(PAUSE_SET == 0)
-                    {
-                         PAUSE = 1;
-                    }
-                    else
-                    {
-                         PAUSE = 0;
-                    }
-               }
-               if(e.key.keysym.sym == SDLK_KP_PLUS)
-               {
-                         flags.frameRateFlag += 100;
-                         frameTime = (1/(float)flags.frameRateFlag)*SECS_TO_USECS;
-               }
-               else if(e.key.keysym.sym == SDLK_KP_MINUS)
-               {
-                         flags.frameRateFlag -= 100;
-                         if(flags.frameRateFlag < MIN_FRAME_RATE)
-                         {
-                              flags.frameRateFlag = MIN_FRAME_RATE;
-                         }
-                         frameTime = (1/(float)flags.frameRateFlag)*SECS_TO_USECS;
-               }
-               if(e.key.keysym.sym == SDLK_F1)
-               {
-                    if(RESET == 0)
-                    {
-                         rom_reset();
-                         RESET = 1;
-                    }
-               }
-
-          }
-          else if (e.type == SDL_KEYUP)
-          {
-               for(int k=0; k<NUM_OF_KEYS; k++)
-               {
-                    if(e.key.keysym.sym == keyMap[k])
-                    {
-                         keyState[k] = RELEASED;
-                    }
-               }
-               if(e.key.keysym.sym == SDLK_BACKSPACE)
-               {
-                    if(PAUSE == 1)
-                    {
-                         PAUSE_SET = 1;
-                    }
-                    else
-                    {
-                         PAUSE_SET = 0;
-                    }
-               }
-               if(e.key.keysym.sym == SDLK_F1)
-               {
-                    if(RESET == 1)
-                    {
-                         RESET = 0;
-                    }
-               }
-          }
-          SDL_Delay(8);
-     }
-     return 0;
-}
+#include "srcs/sound/sound.h"
 
 //Main Program Execution Loop
 int main(int argc, char* argv[])
@@ -232,8 +91,8 @@ int main(int argc, char* argv[])
      cpu_init();
      graphics_init();
      draw_screen();
-     //sound_init();
      input_init();
+     //Seed random function
      srand(time(0));
 
      SDL_Thread *drawThread = NULL;
@@ -248,29 +107,18 @@ int main(int argc, char* argv[])
      }
 
 //Main emulation Loop
-     while(RUN)
+     while(controlFlags.RUN)
      {
-          if(!RESET)
+          if(!controlFlags.RESET)
           {
                //Fetch next opcode, decode it and then execute
                uint16_t op = fetchInstruction();
                runCycle(op);
 
-               //Create seperate thread for playing audio to the screen
-               if (audioThread == NULL)
-               {
-                    audioThread = SDL_CreateThread(handle_audio, "handle_audio", (void*)NULL);
-                    if (audioThread == NULL)
-                    {
-                         printf("SDL_CreateThread audio failed: %s\n", SDL_GetError());
-                         exit(1);
-                    }
-               }
-
                //Create seperate thread for drawing to the screen
                if (drawThread == NULL)
                {
-                    drawThread = SDL_CreateThread(handle_draw, "handle_draw", (void*)NULL);
+                    drawThread = SDL_CreateThread(handle_draw, "handle_draw", (void*)&controlFlags);
                     if (drawThread == NULL)
                     {
                          printf("SDL_CreateThread draw failed: %s\n", SDL_GetError());
@@ -280,21 +128,28 @@ int main(int argc, char* argv[])
                //Create seperate thread for handling input events
                if (eventThread == NULL)
                {
-                    eventThread = SDL_CreateThread(handle_event, "handle_event", (void*)NULL);
+                    eventThread = SDL_CreateThread(handle_event, "handle_event", (void*)&controlFlags);
                     if (drawThread == NULL)
                     {
                          printf("SDL_CreateThread event failed: %s\n", SDL_GetError());
                          exit(1);
                     }
                }
-
-               //Decrement Delay Timer Register
-               updateDT();
+               //Create seperate thread for playing audio to the screen
+               if (audioThread == NULL)
+               {
+                    audioThread = SDL_CreateThread(handle_audio, "handle_audio", (void*)&controlFlags);
+                    if (audioThread == NULL)
+                    {
+                         printf("SDL_CreateThread audio failed: %s\n", SDL_GetError());
+                         exit(1);
+                    }
+               }
 
                //If pause buttton is pressed, delay execution until it is pressed again.
-               if(PAUSE)
+               if(controlFlags.PAUSE)
                {
-                    SDL_Delay(16);
+                    SDL_Delay(TIMER_DELAY);
                }
           }
           //Sleep for desired time to set frame rate
@@ -302,7 +157,9 @@ int main(int argc, char* argv[])
      }
 
      //Safely shut down SDL systems and close program.
-     int eventReturn, drawReturn, audioReturn;
+     int eventReturn = 1;
+     int drawReturn = 1;
+     int audioReturn = 1;
 
      SDL_WaitThread(eventThread, &eventReturn);
      SDL_WaitThread(audioThread, &audioReturn);

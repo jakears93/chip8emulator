@@ -10,6 +10,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "SDL2/SDL.h"
+#include "../cpu/cpu.h"
 
 //Constants
 #define DEFAULT_SCALE 15
@@ -42,5 +43,6 @@ void window_init(void);                 //Initialize SDL window
 void draw_screen(void);                 //Draw the updated screen
 void setBackgroundColour(char* colour); //Sets the background colour
 void setSpriteColour(char* colour);     //Sets the sprite colour
+int handle_draw(void* flags);           //Callback function for draw thread
 
 #endif

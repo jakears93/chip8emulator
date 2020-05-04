@@ -21,6 +21,9 @@
 #define HEIGHT 32
 #define FONT_OFFSET 5
 #define FONT_SIZE 80
+#define EVENT_DELAY 8
+#define DRAW_DELAY 8
+#define TIMER_DELAY 16
 
 //Structures
 struct registers_s
@@ -30,6 +33,26 @@ struct registers_s
      uint8_t DT;                    //Delay Timer register
      uint8_t ST;                   //Sound Timer register
 } typedef reg;
+
+//Emulation Control Flags
+struct controlFlags_s{
+     bool RESET;
+     bool RUN;
+     bool PAUSE;
+     bool PAUSE_SET;
+} typedef cFlags;
+
+//Config Flags
+struct configFlags_s{
+     int videoSizeFlag;
+     float frameRateFlag;
+     char* bgColourFlag;
+     char* spriteColourFlag;
+} typedef configFlags;
+
+//Set up control and config flags
+static cFlags controlFlags = {0,1,0,0};
+static configFlags flags = {0,-1, "black", "white"};
 
 //Global Variables
 char* romPath;
@@ -87,7 +110,7 @@ void SE_VxKk(uint8_t x, uint8_t kk);         //Skip if Vx = kk
 void SNE_VxKk(uint8_t x, uint8_t kk);        //Skip if Vx != kk
 void SE_VxVy(uint8_t x, uint8_t y);          //Skip if Vx = Vy
 void LD_VxKk(uint8_t x, uint8_t kk);         //Load kk to Vx
-void ADD_VxKk(uint8_t x, uint8_t kk);            //Add kk to Vx
+void ADD_VxKk(uint8_t x, uint8_t kk);        //Add kk to Vx
 void LD_VxVy(uint8_t x, uint8_t y);          //Store Vy in Vx
 void OR_VxVy(uint8_t x, uint8_t y);          //Bitwise OR Vx,Vy. Store in Vx
 void AND_VxVy(uint8_t x, uint8_t y);         //Bitwise AND Vx,Vy. Store in Vx
@@ -101,8 +124,8 @@ void SNE_VxVy(uint8_t x, uint8_t y);         //Skip if Vx != Vy
 void LD_Innn(uint16_t nnn);                  //Load nnn to I
 void JP_V0(uint16_t nnn);                    //Jump to nnn+V[0]
 void RND_VxKk(uint8_t x, uint8_t kk);        //Random number AND'ed with kk, stored in Vx
-void DRW(uint8_t x, uint8_t y, uint8_t n);    //Display n-byte sprite at memory location I at [Vx,Vy]
-void SKP_Vx(uint8_t x);                       //Skip if Key with value of Vx is pressed
+void DRW(uint8_t x, uint8_t y, uint8_t n);   //Display n-byte sprite at memory location I at [Vx,Vy]
+void SKP_Vx(uint8_t x);                      //Skip if Key with value of Vx is pressed
 void SKNP_Vx(uint8_t x);                     //Skip if Key with value of Vx is not pressed
 void LD_VxDT(uint8_t x);                     //Load DT register value into Vx
 void LD_VxKey(uint8_t x);                    //Wait for key press, store valye in Vx
@@ -110,9 +133,9 @@ void LD_DTVx(uint8_t x);                     //Load Vx into DT Register
 void LD_STVx(uint8_t x);                     //Load Vx into ST Register
 void ADD_IVx(uint8_t x);                     //Add Vx to I
 void LD_IVx(uint8_t x);                      //Set I = location of sprite for digit Vx
-void LD_BCD(uint8_t x);                       //Store BCD representation of Vx in I, I+1, I+2
+void LD_BCD(uint8_t x);                      //Store BCD representation of Vx in I, I+1, I+2
 void LD_I(uint8_t x);                        //Store V[0] through V[x] into memory starting at I
-void LD_VxI(uint8_t x);                        //Store values from memory starting at I into V[0]-V[x]
+void LD_VxI(uint8_t x);                      //Store values from memory starting at I into V[0]-V[x]
 //Super Chip-48 instructions to be added below
 
 #endif

@@ -43,9 +43,9 @@ bool keyState[NUM_OF_KEYS];
 char keyMap[NUM_OF_KEYS];
 
 //Function Declarations
-int input_init(void);         //Initialize the inputs
-void debug_printKeys(void);   //Print Key Values and States
-int getKeyPress(void);        //Wait and read a key press, return the key that was press
-void toggle_key(int key);    //Toggle key state
+int input_init(void);                   //Initialize the inputs
+void debug_printKeys(void);             //Print Key Values and States
+int getKeyPress(void);                  //Wait and read a key press, return the key that was press
+int handle_event(void* controlflags);   //Callback function for event thread
 
 #endif

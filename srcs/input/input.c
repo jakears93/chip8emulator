@@ -9,6 +9,8 @@
 #include <stdlib.h>
 #include <SDL2/SDL.h>
 #include "input.h"
+#include "../cpu/cpu.h"
+
 
 //Function Definitions
 int input_init(void)         //Initialize the inputs based on config file, set all key states to released
@@ -72,11 +74,6 @@ int getKeyPress(void)              //Wait and read a key press, return the key t
     return -1;
 }
 
-void toggle_key(int key)          //Toggle key state
-{
-     keyState[key] ^= 1;
-}
-
 void debug_printKeys()             //Print key values and states to console for debugging.
 {
      printf("PRINTING KEY VALUES AND STATES\n");
@@ -85,4 +82,95 @@ void debug_printKeys()             //Print key values and states to console for 
           printf("Key %X\tMapping: %c\tState: %d\n",KEYS[i],keyMap[i],keyState[i]);
      }
      printf("END OF PRINT KEYS\n\n");
+}
+
+int handle_event(void* controlflags)    //Event Thread Function
+{
+     cFlags* controlFlags= (cFlags*)controlflags;
+     SDL_Event e;
+     while (controlFlags->RUN)
+     {
+          SDL_PollEvent(&e);
+          if (e.type == SDL_QUIT)
+          {
+               if(controlFlags->PAUSE)
+               {
+                    controlFlags->PAUSE = 0;
+               }
+               controlFlags->RUN = 0;
+          }
+          if (e.type == SDL_KEYDOWN)
+          {
+               for(int k=0; k<NUM_OF_KEYS; k++)
+               {
+                    if(e.key.keysym.sym == keyMap[k])
+                    {
+                         keyState[k] = PRESSED;
+                    }
+               }
+               if(e.key.keysym.sym == SDLK_BACKSPACE)
+               {
+                    if(controlFlags->PAUSE_SET == 0)
+                    {
+                         controlFlags->PAUSE = 1;
+                    }
+                    else
+                    {
+                         controlFlags->PAUSE = 0;
+                    }
+               }
+               if(e.key.keysym.sym == SDLK_KP_PLUS)
+               {
+                         flags.frameRateFlag += 100;
+                         frameTime = (1/(float)flags.frameRateFlag)*SECS_TO_USECS;
+               }
+               else if(e.key.keysym.sym == SDLK_KP_MINUS)
+               {
+                         flags.frameRateFlag -= 100;
+                         if(flags.frameRateFlag < MIN_FRAME_RATE)
+                         {
+                              flags.frameRateFlag = MIN_FRAME_RATE;
+                         }
+                         frameTime = (1/(float)flags.frameRateFlag)*SECS_TO_USECS;
+               }
+               if(e.key.keysym.sym == SDLK_F1)
+               {
+                    if(controlFlags->RESET == 0)
+                    {
+                         rom_reset();
+                         controlFlags->RESET = 1;
+                    }
+               }
+          }
+          else if (e.type == SDL_KEYUP)
+          {
+               for(int k=0; k<NUM_OF_KEYS; k++)
+               {
+                    if(e.key.keysym.sym == keyMap[k])
+                    {
+                         keyState[k] = RELEASED;
+                    }
+               }
+               if(e.key.keysym.sym == SDLK_BACKSPACE)
+               {
+                    if(controlFlags->PAUSE == 1)
+                    {
+                         controlFlags->PAUSE_SET = 1;
+                    }
+                    else
+                    {
+                         controlFlags->PAUSE_SET = 0;
+                    }
+               }
+               if(e.key.keysym.sym == SDLK_F1)
+               {
+                    if(controlFlags->RESET == 1)
+                    {
+                         controlFlags->RESET = 0;
+                    }
+               }
+          }
+          SDL_Delay(EVENT_DELAY);
+     }
+     return 0;
 }
