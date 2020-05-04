@@ -6,6 +6,8 @@ My first emulator project.
 I have tried to make this project as verbose as possible as it is a learning project.
 My goal is to write an NES emulator using the knowledge I have gained from this venture.
 
+To install, navigate to root folder of project and enter the command:make</br>If you want to print the opcodes to the terminal during execution, build with command: make DF=1
+
 ## Completed
 ------------
 -    Usage: ./chip8 roms/ROMNAME
